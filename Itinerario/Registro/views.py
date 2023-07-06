@@ -91,7 +91,7 @@ def actulizar_local(request, id: int):
         # devolvemos el metodo de no encontrado porque necesitamos siempre devolver un status
         # porque solo aceptamos gets
         return JsonResponse(
-            {"message": "method not allowed"},
+            {"message": "metodo no permitido"},
             status=405,
         )
 
@@ -130,7 +130,7 @@ def borrar_local(request, id: int):
         # devolvemos el metodo de no encontrado porque necesitamos siempre devolver un status
         # porque solo aceptamos gets
         return JsonResponse(
-            {"message": "method not allowed"},
+            {"message": "metodo no permitido"},
             status=405,
         )
     
