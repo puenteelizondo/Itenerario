@@ -26,5 +26,6 @@ urlpatterns = [
     # es para que no nos de error en el post cuando hacemos un post agregamos ese error al igual que el update porque tambieen hacemos post
     path("crear/", csrf_exempt(views.crear_local), name="crear_local"),
     path("lista/", views.lista_de_locales, name="lista_de_locales"),
-    path("actualizar/", views.actulizar_local, name="actulizar_local"),
+    path("actualizar/<int:id>", views.actulizar_local, name="actulizar_local"),
+    path("borrar/<int:id>", csrf_exempt(views.borrar_local), name="borrar_local"),
 ]

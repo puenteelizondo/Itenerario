@@ -16,8 +16,8 @@ def crear_local (request):
               horario=datos["horario"],
             )
         return JsonResponse({
-                 "message":"guarda tu id por favor",
-                 "id": locales.id,
+                 "message":"Creado correctamente",
+                 
                 }, status=201)
     else:
         # devolvemos el metodo de no encontrado porque necesitamos siempre devolver un status
@@ -94,4 +94,43 @@ def actulizar_local(request, id: int):
             {"message": "method not allowed"},
             status=405,
         )
-   
+
+def borrar_local(request, id: int):
+    # jalamos lo que tengamos y lo metemos a la variable
+    #no usamos body porque solo lo jalamos con el id
+    
+    if request.method == "DELETE":
+       
+        try:
+            # aca traemos solo un objeto con el get
+            # y en el parametro le decimos que pk=id porque pk se maneja en la base de datos
+            # sino existe se va al 404
+            object_to_update = Locales.objects.get(pk=id)
+            # ahora que ya encontro borramos el objeto
+            
+            object_to_update.delete()
+
+            return JsonResponse(
+                {
+                    "message":"se ha borrado exitosamente"
+                },
+                #se devuelve un 204 de no contend  quiere decir que se borro correctamente
+                status=204,
+            )
+        # sino encuentra en la base de datos ya entra aqui
+        except Locales.DoesNotExist:
+            # sino existe en la base de datos que devulva un mensaje que con ese id no existe
+            # y el 404 es de no found
+            return JsonResponse(
+                {"message": f"object with {id} does not exist"}, status=404
+            )
+        except Exception:
+            return JsonResponse({"message": "Internal server error"}, status=500)
+    else:
+        # devolvemos el metodo de no encontrado porque necesitamos siempre devolver un status
+        # porque solo aceptamos gets
+        return JsonResponse(
+            {"message": "method not allowed"},
+            status=405,
+        )
+    
