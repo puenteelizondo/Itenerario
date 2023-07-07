@@ -5,10 +5,20 @@ from django.http import HttpResponse, JsonResponse
 
 from Registro.models import Locales
 from django.views.decorators.csrf import csrf_protect
+from Registro.utils.auth import validate_token
+from Registro.utils.auth import validate_token_usuario_root
 
 # Create your views here.
 def crear_local (request):
     if request.method == "POST":
+
+        if not (validate_token_usuario_root(dict(request.headers).get("X-Token")) or validate_token(dict(request.headers).get("X-Token"))):
+            return JsonResponse(
+                {"message": "Acceso denegado"},
+                status=401,
+            )
+
+    
         datos = json.loads(request.body)
         locales = Locales.objects.create(
              nombre=datos["nombre"],
@@ -29,6 +39,11 @@ def crear_local (request):
 def lista_de_locales(request):
     # solo se permite get
     if request.method == "GET":
+        if not validate_token_usuario_root(dict(request.headers).get("X-Token")) :
+            return JsonResponse(
+                {"message": "Acceso denegado"},
+                status=401,
+            )
        
         # de la aplicacion traer todos los objetos de la tabla clientes
         # como ya se crea un id automatico en la base de datos solo lo que se hace es traerlo en el json
@@ -56,6 +71,11 @@ def actulizar_local(request, id: int):
     # jalamos lo que tengamos y lo metemos a la variable
     datos = json.loads(request.body)
     if request.method == "PUT":
+        if not (validate_token_usuario_root(dict(request.headers).get("X-Token")) or validate_token(dict(request.headers).get("X-Token"))):
+            return JsonResponse(
+                {"message": "Acceso denegado"},
+                status=401,
+            )
         
         try:
             # aca traemos solo un objeto con el get
@@ -100,6 +120,13 @@ def borrar_local(request, id: int):
     #no usamos body porque solo lo jalamos con el id
     
     if request.method == "DELETE":
+        
+        if not (validate_token_usuario_root(dict(request.headers).get("X-Token")) or validate_token(dict(request.headers).get("X-Token"))):
+            return JsonResponse(
+                {"message": "Acceso denegado"},
+                status=401,
+            )
+        
        
         try:
             # aca traemos solo un objeto con el get
@@ -133,4 +160,46 @@ def borrar_local(request, id: int):
             {"message": "metodo no permitido"},
             status=405,
         )
+
+def obtener(request, id: int):
+    # solo se permite get
+    if request.method == "GET":
+        if not (validate_token_usuario_root(dict(request.headers).get("X-Token")) or validate_token(dict(request.headers).get("X-Token"))):
+            return JsonResponse(
+                {"message": "Acceso denegado"},
+                status=401,
+            )
+        try:
+            # aca traemos solo un objeto con el get
+            # y en el parametro le decimos que pk=id porque pk se maneja en la base de datos
+            response = Locales.objects.get(pk=id)
+            # ahora solo traemos de response porque solo es uno y no todos y ahi se almacena por medio del id
+            return JsonResponse(
+                {
+                    "id": response.id,
+                    "nombre": response.nombre,
+                    "ubicacion": response.ubicacion,
+                    "horario": response.horario,
+                },
+                status=200,
+            )
+        # sino encuentra en la base de datos ya entra aqui
+        except Locales.DoesNotExist:
+            # sino existe en la base de datos que devulva un mensaje que con ese id no existe
+            # y el 404 es de no found
+            return JsonResponse(
+                {"message": f"objeto con este {id} no existe"}, status=404
+            )
+        # esta excepcion lo que hace es que cualquier otro error que ocurra exterior a el codigo entrara aqui
+        except Exception:
+            return JsonResponse({"message": "Internal server error"}, status=500)
+
+    else:
+        # devolvemos el metodo de no encontrado porque necesitamos siempre devolver un status
+        # porque solo aceptamos gets
+        return JsonResponse(
+            {"message": "metodo no permitido"},
+            status=405,
+        )
+
     
